@@ -1,0 +1,37 @@
+; Advent of Code Day 1.1
+;
+; IN1 is a sequence of positive numbers, two of which sum to 2020
+; Output those two numbers to OUT1
+; Any output to OUT2 is looped back to IN2
+
+ A=IN1,B=2020
+ B=B-A,A=IN1
+ OUT2=W,F=ZERO(B-A),W=A
+ A=IN1
+
+; First loop reading values from IN1 and checking against very first input
+firstloop:
+ F=ZERO(-A),JMPT found
+ F=ZERO(B-A),OUT2=W,W=A,JMPT firstnext
+ A=IN1,JMP firstloop
+
+; Initialize subsequent loop reading values from IN2
+firstnext:
+ A=IN2
+ A=IN2
+next:
+ B=2020
+ B=B-A,A=IN2,W=0
+ OUT2=W,F=ZERO(B-A),W=A
+ A=IN2,JMPT found
+ F=ZERO(-A)
+
+loop:
+ F=ZERO(B-A),OUT2=W,W=A,A=IN2,JMPT next
+ F=ZERO(-A),JMPT found
+ JMP loop
+
+found:
+ OUT1=W,A=B,B=2020
+ W=B-A
+ OUT1=W
