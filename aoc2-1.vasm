@@ -1,0 +1,47 @@
+; Advent of Code Day 2.1
+;
+; Check whether a particular number occurs a set number of times in a sequence
+; IN1 is the stream of sequences
+;  First number in each sequence is the minimum number of repeats
+;  Second number in each sequence is the maximum number of repeats
+;  Third number in each sequence is the number to check for
+;  Subsequent numbers are the sequence to check, terminated by a zero
+; Output the number of matching sequences to OUT1 after the input stream is terminated by two zeros.
+; Any output to OUT2 is looped back to IN2
+
+; Setup: C = min, D = max - min, B = number to check for
+ A=IN1
+top:
+ A=-A,B=-A,W=1
+ C=-A,A=IN1
+ A=A+B
+ D=A,A=IN1
+ A=-A
+ B=-A,A=IN1,F=ZERO(-A)
+ 
+; C counts number of repeats, at end if -D <= C <= 0 then sequence valid.
+loop:
+ F=ZERO(B-A),A=IN1,JMPT done
+ F=ZERO(-A),JMPF loop
+ DEC,JMP loop
+ 
+done:
+ A=D,D=A,B=C,F=POS(C)
+ A=D,F=NEG(A+B),JMPT nomatch ;11: 1011
+ JMPT nomatch                ;12: 1100
+ 
+ ; Output a 1 to OUT2 if there's a match, we'll sum them at the end
+match:
+ OUT2=W
+ 
+nomatch:
+ F=ZERO(-A)
+ JMPF top
+ 
+alldone:
+ A=IN2,B=0
+ B=A+B
+allloop:
+ A=IN2,F=ZERO(-A)
+ B=A+B,W=A+B,JMPF allloop 
+ OUT1=W

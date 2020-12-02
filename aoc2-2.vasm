@@ -1,0 +1,63 @@
+; Advent of Code Day 2.2
+;
+; Check whether a particular number occurs at set positions in a sequence
+; IN1 is the stream of sequences
+;  First number in each sequence is first position to check
+;  Second number in each sequence is second position to check
+;  Third number in each sequence is the number to check for
+;  Subsequent numbers are the sequence to check, terminated by a zero
+; A sequence matches if exactly one of the two positions to check is the check number
+; Positions are 1 based.
+; Output the number of matching sequences to OUT1 after the input stream is terminated by two zeros.
+; Any output to OUT2 is looped back to IN2
+
+; Setup: C = first, D = second, B = number to check for
+ A=IN1
+top:
+ A=-A,B=-A,W=1
+ C=-A,A=IN1
+ A=A+B
+ D=A,A=IN1
+ A=-A
+ B=-A
+ 
+; Skip forwards to first position
+loop:
+ A=IN1,DECNZ loop
+ F=ZERO(B-A)
+ A=D
+ A=-A
+ C=-A
+ JMPT match
+
+; Skip forwards to second position
+loop2:
+ A=IN1,DECNZ loop2
+ F=ZERO(B-A)
+ JMPT output
+ JMP done
+ 
+match:
+ A=IN1,DECNZ match
+ F=ZERO(B-A)
+ JMPF output
+ JMP done
+ 
+output:
+ OUT2=W
+ 
+done:
+ A=IN1
+loop3:
+ F=ZERO(-A)
+ A=IN1,JMPF loop3
+ F=ZERO(-A)
+ JMPF top
+ 
+alldone:
+ A=IN2,B=0
+ B=A+B
+allloop:
+ A=IN2,F=ZERO(-A)
+ B=A+B,W=A+B,JMPF allloop 
+ OUT1=W
