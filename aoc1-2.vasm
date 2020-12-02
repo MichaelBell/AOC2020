@@ -1,0 +1,70 @@
+; Advent of Code Day 1.2
+;
+; IN1 is a sequence of positive numbers, three of which sum to 2020
+; Output those three numbers to OUT1
+; Any output to OUT2 is looped back to IN2
+
+ A=IN1,B=2020
+ OUT2=W,W=1
+ B=B-A,A=B-A,OUT2=W,W=A
+ D=A,A=IN1
+ OUT2=W
+ A=IN1,B=B-A,W=A
+ F=ZERO(B-A),
+
+; First loop reading values from IN1 and checking against very first two inputs
+firstloop:
+ F=ZERO(-A),JMPT found
+ F=ZERO(B-A),OUT2=W,W=A,JMPT firstnext
+ A=IN1,JMP firstloop
+
+; Initialize subsequent loop reading values from IN2
+firstnext:
+ A=IN2
+ A=IN2
+
+; A contains index for second number
+next:
+ W=0
+ B=1,OUT2=W
+ C=A+B,W=A+B,A=D
+ A=-A,OUT2=W
+ B=-A,A=IN2
+ A=IN2,W=A,F=ZERO(-A),DECNZ skiploop
+ JMP n2
+skiploop:
+ A=IN2,W=A,OUT2=W,F=ZERO(-A),DECNZ skiploop
+
+n2:
+ OUT2=W
+ JMPT outernext
+ 
+ B=B-A,A=IN2,W=A
+ F=ZERO(B-A),W=A,OUT2=W
+ A=IN2,JMPT found
+ F=ZERO(-A)
+
+loop:
+ F=ZERO(B-A),OUT2=W,W=A,A=IN2,JMPT next
+loop2:
+ F=ZERO(-A),JMPT found
+ JMP loop
+ 
+outernext:
+ A=IN2,W=1
+ A=IN2,B=2020
+ B=B-A,A=B-A,W=A,OUT2=W
+ D=A,A=IN2,OUT2=W
+ A=IN2,B=B-A,W=A
+ F=ZERO(B-A),JMP loop2
+
+found:
+ F=ZERO(-A)
+ OUT1=W,A=B,B=2020
+ B=B-A
+foundloop:
+ A=IN2,F=ZERO(-A),JMPF foundloop
+ 
+ W=A,B=B-A
+ OUT1=W,W=B
+ OUT1=W
