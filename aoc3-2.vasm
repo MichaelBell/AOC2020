@@ -1,0 +1,69 @@
+; Advent of Code Day 3.1
+;
+; The input consists of a sequence of 31 bit numbers, 
+; supplied as 2 10 bit numbers and an 11 bit number, low bits first
+; For each 31 bit entry, check if the n'th bit is set, where n is three times 
+; number of entries that have preceded this one modulo 31
+; So for the 1st number check if the 0th bit is set, for the 3rd number check if the 6th bit is set
+; and for the 12th number check if the 2nd bit is set.
+; A single negative number terminates the sequence.
+
+top:
+ B=10,A=C,F=ZERO(C)
+ F=POS(B-A),D=A,A=IN1,B=1,W=1,JMPT noshift1
+ F=POS(-A),JMPF second
+shift1:
+ A=A>>1,DECNZ shift1
+noshift1:
+ F=POS(-A)
+ F=ZERO(A&B),JMPT alldone
+ JMPT skip2
+ OUT2=W
+skip2:
+ A=IN1
+ A=IN1,JMP next
+ 
+second:
+ A=D,B=10,JMPT alldone
+ A=B-A,F=ZERO(B-A)
+ A=-A,C=-A
+ F=POS(B-A),A=IN1,B=1,JMPT noshift2
+ JMPF third
+shift2:
+ A=A>>1,DECNZ shift2
+noshift2:
+ F=ZERO(A&B)
+ JMPT skip1
+ OUT2=W
+skip1:
+ A=IN1,JMP next
+ 
+third:
+ A=D,B=20
+ A=B-A,F=ZERO(B-A)
+ C=-A,A=IN1,B=1,JMPT noshift3
+shift3:
+ A=A>>1,DECNZ shift3
+noshift3:
+ F=ZERO(A&B)
+ JMPT next
+ OUT2=W
+
+next:
+ A=D,B=1
+ A=A+B,B=31,C=A+B
+ F=POS(B-A),A=B-A
+ JMPT nextrow
+ C=-A
+nextrow:
+ A=IN1
+ A=IN1,F=POS(-A)
+ A=IN1,JMPF top
+ 
+alldone:
+ A=IN2,B=0
+ B=A+B
+allloop:
+ A=IN2,F=ZERO(-A)
+ B=A+B,W=A+B,JMPF allloop 
+ OUT1=W
