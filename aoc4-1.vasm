@@ -1,0 +1,38 @@
+; Advent of Code Day 4.1
+;
+; The input is a list of 0 terminated sequences
+; Each sequence is a list of 0 terminated subsequences
+; Each subsequence is a key value followed by one or more non-zero values
+; Count the number of sequences that contain sub-sequence with all of the keys 1,2,3,4,5,6 and 8.
+
+top:
+ A=IN1,B=0
+ B=A+B,F=ZERO(A+B)
+ A=C,JMPT check
+ C=B,B=256
+ A=B,B=A
+shiftloop:
+ A=A>>1,DECNZ shiftloop
+ C=B,B=A,A=D
+ A=A|B
+ D=A,A=IN1
+skipvalue:
+ A=IN1
+ F=ZERO(-A)
+ JMPF skipvalue
+ JMP top
+ 
+check:
+ A=D,B=253
+ F=ZERO(-A)
+ A=A&B,JMPT end
+ F=ZERO(B-A),B=0
+ A=B,JMPF skip
+ DEC
+skip:
+ D=A,JMP top
+ 
+end:
+ A=C
+ W=-A
+ OUT1=W
