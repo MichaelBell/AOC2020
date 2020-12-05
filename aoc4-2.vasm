@@ -1,0 +1,252 @@
+; Advent of Code Day 4.2
+;
+; The input is a list of 0 terminated sequences
+; Each sequence is a list of 0 terminated subsequences
+; Each subsequence is a key value followed by one or more positive non-zero values
+; Count the number of valid sequences.
+; Valid sequences contain sub-sequences with all of the keys 1,2,3,4,5,6 and 8 (key 7 is ignored)
+; The values for each sequence must be:
+; 1 (ecl): Any of the hex sequences: 61,6d,62; 62,6c,75; 62,72,6e; 67,72,79; 67,72,6e; 68,7a,6c; 6f,74,68
+; 2 (pid): A 9 digit sequence of values in the range 30-39 hex
+; 3 (eyr): A number between 2020 and 2030 (inclusive)
+; 4 (hcl): 23 followed by a 6 digit sequence of values in the ranges 30-39 or 61-66
+; 5 (byr): A number between 1920 and 2002 (inclusive)
+; 6 (iyr): A number between 2010 and 2020 (inclusive)
+; 7 (cid): Ignore
+; 8 (hgt): A number in ASCII followed by "cm" or "in"
+;    - If cm, the number must be at least 150 and at most 193.
+;    - If in, the number must be at least 59 and at most 76.
+; Output to OUT2 is looped back to IN2
+
+; The FIFO generally contains the valid count followed by the valid bits for the current sequence
+; followed by the current key value.
+
+ OUT2=W
+vtop:
+ A=IN1
+top:
+ B=0,OUT2=W
+ W=A+B,A=A+B,B=1,F=ZERO(A+B)
+ A=B,B=A,OUT2=W,JMPT check
+ B=B-A,F=ZERO(B-A)
+ B=B-A,F=ZERO(B-A),JMPT ecl
+ B=B-A,F=ZERO(B-A),JMPT pid
+ B=B-A,F=ZERO(B-A),JMPT eyr
+ B=B-A,F=ZERO(B-A),JMPT hcl
+ B=B-A,F=ZERO(B-A),JMPT byr
+ B=B-A,F=ZERO(B-A),JMPT iyr
+ JMPT cid
+ JMP hgt
+
+; Skip any remaining non-zero input.  Use second entry if may have already read a zero.
+invalidskip:
+ A=IN1
+invalidskip2:
+ F=ZERO(-A),JMP invalidskip3
+
+pid:
+ B=9
+ A=IN1,B=$30,C=B
+pidloop:
+ F=POS(B-A),B=$39
+ F=NEG(B-A),A=IN1,JMPT invalidskip2
+ B=$30
+ JMPT invalidskip2
+ DECNZ pidloop
+ F=ZERO(-A)
+ JMPT validval
+ JMP invalidskip
+
+eyr:
+ A=IN1,B=2020
+ F=POS(B-A),B=2030
+ JMP yr
+
+iyr:
+ A=IN1,B=2010
+ F=POS(B-A),B=2020
+yr:
+ F=NEG(B-A),JMPT invalidskip2
+ A=IN1,JMPF validcheckend2
+ JMP invalidskip2
+
+byr:
+ A=IN1,B=1920
+ F=POS(B-A),B=2002
+ JMP yr 
+
+hcl:
+ A=IN1,B=$23
+ F=ZERO(B-A),B=6
+ C=B,JMPF invalidskip
+hclloop:
+ A=IN1,B=$30
+ F=POS(B-A),B=$39
+ F=NEG(B-A),JMPT invalidskip2
+ JMPF hcldec
+ B=$61
+ F=POS(B-A),B=$66
+ F=NEG(B-A),JMPT invalidskip
+ JMPT invalidskip
+hcldec:
+ DECNZ hclloop
+ 
+validcheckend:
+ A=IN1
+validcheckend2:
+ F=ZERO(-A)
+ JMPT validval
+ JMP invalidskip
+
+hgt:
+ A=IN1,B=$30
+ A=B-A,F=POS(B-A),B=-9
+ F=POS(B-A),JMPT invalidskip
+ A=-A,B=-A,JMPT invalidskip
+ A=A+B ; 2
+ A=A+B ; 3
+ A=A+B ; 4
+ A=A+B ; 5
+ B=A
+ A=A+B ; 10
+ D=A,A=IN1,B=$30
+ A=B-A,F=POS(B-A),B=-9
+ F=POS(B-A),JMPT invalidskiph
+ A=D,B=-A,JMPT invalidskip
+ A=A+B
+ D=A,A=IN1,B=$30
+ A=B-A,F=POS(B-A),B=-9
+ F=POS(B-A),JMPT invalidskiph
+ JMPT hgt2
+ A=D,D=A
+ B=A
+ A=A+B ; 2
+ A=A+B ; 3
+ A=A+B ; 4
+ A=A+B ; 5
+ B=A
+ B=A+B,A=D ; 10
+ A=B-A
+ D=A,A=IN1,B=$30
+ A=B-A
+ 
+hgt2: ; c => -51, i => -57
+ B=-51
+ F=ZERO(B-A),B=-57
+ JMPF hgt3
+ A=IN1,B=$6D
+ F=ZERO(B-A)
+ JMPF invalidskip2
+ A=D,B=150
+ F=POS(B-A),B=193
+ JMP yr
+
+hgt3:
+ F=ZERO(B-A)
+ JMPF invalidskip2
+ A=IN1,B=$6E
+ F=ZERO(B-A)
+ JMPF invalidskip2
+ A=D,B=59
+ F=POS(B-A),B=76
+ JMP yr
+ 
+invalidskiph:
+ B=$30
+ A=B-A,JMP invalidskip2
+
+cid:
+ A=IN1
+ F=ZERO(-A)
+ JMPF cid
+ JMP validval
+
+ecl: ; 61,6d,62; 62,6c,75; 62,72,6e; 67,72,79; 67,72,6e; 
+ A=IN1,B=$61
+ F=ZERO(B-A),B=$62
+ JMPF ecl2
+ A=IN1,B=$6D
+ F=ZERO(B-A)
+ JMPF invalidskip2
+ A=IN1,B=$62
+ F=ZERO(B-A),JMP eclend
+ 
+ecl2:
+ F=ZERO(B-A),B=$67
+ JMPF ecl4
+ A=IN1,B=$6C
+ F=ZERO(B-A),B=$72
+ JMPF ecl3
+ A=IN1,B=$75
+ F=ZERO(B-A),JMP eclend
+
+ecl3:
+ F=ZERO(B-A)
+ JMPF invalidskip2
+ A=IN1,B=$6E
+ F=ZERO(B-A),JMP eclend
+
+ecl4:
+ F=ZERO(B-A),B=$68
+ JMPF ecl6
+ A=IN1,B=$72
+ F=ZERO(B-A)
+ JMPF invalidskip2
+ A=IN1,B=$79
+ F=ZERO(B-A),B=$6E
+ F=ZERO(B-A),JMPT validcheckend
+eclend:
+ JMPT validcheckend
+ JMP invalidskip2
+ 
+ecl6: ; 68,7a,6c; 6f,74,68
+ F=ZERO(B-A),B=$6F
+ JMPF ecl7
+ A=IN1,B=$7A
+ F=ZERO(B-A)
+ JMPF invalidskip2
+ A=IN1,B=$6C
+ F=ZERO(B-A),JMP eclend
+
+ecl7:
+ F=ZERO(B-A)
+ JMPF invalidskip2
+ A=IN1,B=$74
+ F=ZERO(B-A)
+ JMPF invalidskip2
+ A=IN1,B=$68
+ F=ZERO(B-A),JMP eclend 
+
+invalidskip3:
+ JMPF invalidskip
+
+invalid:
+ A=IN2
+ W=A,A=IN2,B=0
+ A=IN2,OUT2=W,W=A,C=A+B,JMP vtop 
+
+validval:
+ A=IN2
+ W=A,A=IN2
+ D=A,A=IN2,B=0,OUT2=W
+ C=A+B,B=256
+ A=B
+shiftloop:
+ A=A>>1,DECNZ shiftloop
+ B=A,A=D
+ W=A|B,C=A|B,A=IN1,JMP top
+ 
+check:
+ A=C,B=253
+ A=A&B
+ F=ZERO(B-A),A=IN2,B=1
+ W=A,JMPF skip
+ W=A+B
+skip:
+ A=IN1
+ OUT2=W,F=ZERO(-A),D=A,A=IN2
+ A=IN2,JMPT end
+ A=D,W=0,JMP top
+ 
+end:
+ OUT1=W
