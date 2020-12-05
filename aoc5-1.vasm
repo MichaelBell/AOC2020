@@ -1,0 +1,13 @@
+; Advent of Code Day 5.1
+;
+; Input is a sequence of numbers, output the maximum
+
+top:
+ A=IN1
+ F=ZERO(-A)
+ F=NEG(B-A),JMPT end
+ JMPF top
+ B=A,W=A,JMP top
+ 
+end:
+ OUT1=W

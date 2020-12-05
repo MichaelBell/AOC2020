@@ -1,0 +1,42 @@
+; Advent of Code Day 5.2
+;
+; Input is a sequence of numbers, which together completely fill some range
+; with no gaps except one missing number.
+; Output the missing number
+;
+; Output to OUT2 is looped back to IN2
+
+ A=IN1
+inloop:
+ W=A,A=IN1,F=ZERO(-A),DEC
+ OUT2=W,JMPF inloop
+ 
+ A=IN2
+sortloop:
+ W=A,B=A,A=IN2,F=ZERO(-A)
+ F=POS(B-A),JMPT end
+ JMPT reorder
+ OUT2=W,JMP sortloop
+ 
+reorder:
+ W=A,F=ZERO(-A)
+ JMPT rend
+ OUT2=W,W=B,DEC
+ OUT2=W,A=IN2,JMP sortloop
+
+end:
+ F=NEG(C)
+ OUT2=W,C=0, JMPT sortloop
+ OUT2=W,JMP outloop
+ 
+rend:
+ W=B
+ OUT2=W,W=0,F=NEG(C)
+ OUT2=W,C=0,A=IN2, JMPT sortloop
+ 
+outloop:
+ B=A,A=IN2
+ D=A,A=B-A,B=-1
+ F=ZERO(B-A),A=D
+ W=A+B,JMPT outloop
+ OUT1=W
