@@ -1,0 +1,96 @@
+; Advent of Code Day 6.1
+;
+; Input is a list of sets sequences of numbers in the range [0x61,0x7a]
+; Each sequence is terminated with 0xa
+; Each set of sequences is terminated by an empty sequence (two 0xa in a row)
+; Count the number of distinct numbers in each set of sequences
+; The input is terminated by a zero.
+; Add the counts together for the final result
+;
+; OUT2 is looped back to IN2
+
+ OUT2=W
+ OUT2=W
+ OUT2=W
+top:
+ A=IN1
+ OUT2=W,B=$A
+ctop:
+ F=ZERO(B-A),B=$61
+ A=B-A,B=9,JMPT endseq
+ F=POS(A+B),C=A+B
+ B=18,JMPF two
+ B=512
+ A=B
+loop1:
+ A=A>>1,DECNZ loop1
+ B=A,A=IN2
+ W=A|B,A=IN2
+ OUT2=W,W=A,A=IN2
+ OUT2=W,W=A,A=IN2
+ OUT2=W,W=A,JMP top
+ 
+two:
+ F=POS(A+B),C=A+B
+ B=27,JMPF three
+ B=512
+ A=B
+loop2:
+ A=A>>1,DECNZ loop2
+ B=A,A=IN2
+ W=A,A=IN2
+ OUT2=W,W=A|B,A=IN2
+ OUT2=W,W=A,A=IN2
+ OUT2=W,W=A,JMP top
+ 
+three:
+ C=A+B,B=512
+ A=B
+loop3:
+ A=A>>1,DECNZ loop3
+ B=A,A=IN2
+ W=A,A=IN2
+ OUT2=W,W=A,A=IN2
+ OUT2=W,W=A|B,A=IN2
+ OUT2=W,W=A,JMP top
+
+endseq:
+ A=IN1,B=$A
+ F=ZERO(B-A)
+ JMPF ctop
+
+endset:
+ A=IN2,B=0,F=POS(0),C=0
+loope1:
+ A=A>>1,F=NEG(A>>1),JMPT endtwo
+ F=ZERO(-A),JMPF loope1
+ DEC,JMP loope1
+
+endtwo:
+ A=IN2,F=POS(0)
+loope2:
+ A=A>>1,F=NEG(A>>1),JMPT endthree
+ F=ZERO(-A),JMPF loope2
+ DEC,JMP loope2
+
+endthree:
+ A=IN2,F=POS(0)
+loope3:
+ A=A>>1,F=NEG(A>>1),JMPT endfin
+ F=ZERO(-A),JMPF loope3
+ DEC,JMP loope3
+ 
+endfin:
+ A=C,W=0
+ B=-A,A=IN2,OUT2=W
+ OUT2=W
+ OUT2=W,W=A+B,B=A+B
+ A=IN1,F=NEG(B),B=$A
+ F=ZERO(-A),JMPT partcount
+ OUT2=W,JMPF ctop
+ OUT1=W
+
+partcount:
+ OUT1=W,W=0
+ OUT2=W,JMPF ctop
+ OUT1=W
