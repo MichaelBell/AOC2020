@@ -1,0 +1,95 @@
+; Advent of Code Day 7.1
+;
+; Input describes a directed acyclic graph
+; Each edge in the graph is described by a triple (src, dest, weight)
+; Count how many nodes can reach node 1 (weight can be ignored)
+;
+; OUT2 is looped back to IN2
+
+; Strategy
+; Break array into three sets {input, open, closed}.  Discard weights
+; First push links to node 1 into the open set
+; Pick one node in the open set and move it to the closed set, and all 
+; nodes linking to it to the open set
+; Repeat until open set is empty
+; Answer is count of nodes in closed set.
+
+read:
+ A=IN1
+ W=A,F=ZERO(-A)
+ JMPT rdone
+ A=IN1
+ OUT2=W,W=A
+ OUT2=W
+ A=IN1,JMP read
+ 
+rdone:
+ W=0
+ OUT2=W
+ OUT2=W
+ OUT2=W,B=1
+ 
+open:
+ A=IN2
+open2:
+ D=A,W=A,A=IN2,F=ZERO(-A)
+ F=ZERO(B-A),JMPT endinput
+ JMPT movetoopen
+ OUT2=W,W=A
+ OUT2=W,JMP open
+ 
+movetoopen:
+ C=-A,A=IN2
+mtoloop:
+ W=A,F=ZERO(-A)
+ OUT2=W,A=IN2,JMPF mtoloop
+ A=D,D=A
+ W=A,A=C
+ OUT2=W,W=-A,A=D
+ OUT2=W
+
+skipopen1:
+ W=A,F=ZERO(-A)
+ OUT2=W,A=IN2,JMPF skipopen1
+ 
+skipclosed1:
+ W=A,F=ZERO(-A)
+ OUT2=W,A=IN2,JMPF skipclosed1
+ JMP open2
+ 
+endinput:
+ OUT2=W,F=ZERO(-A)
+ B=0,JMPT done
+ B=A+B,A=IN2
+ A=IN2
+skipopen2:
+ W=A,F=ZERO(-A)
+ OUT2=W,A=IN2,JMPF skipopen2
+
+closedloop:
+ W=A,F=ZERO(-A) 
+ JMPT addtoclosed
+ A=IN2,F=ZERO(B-A)
+ OUT2=W,JMPT skipclosed2
+ JMP closedloop
+ 
+addtoclosed:
+ W=B
+ OUT2=W,W=A,A=IN2
+ OUT2=W,JMP open2
+ 
+skipclosed2:
+ W=A,F=ZERO(-A)
+ OUT2=W,A=IN2,JMPF skipclosed2
+ JMP open2
+
+done:
+ C=0,A=IN2,B=-1
+doneloop:
+ F=ZERO(-A),DEC
+ A=IN2,JMPF doneloop
+ 
+ A=C
+ W=B-A
+ OUT1=W
+ 
