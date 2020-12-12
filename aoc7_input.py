@@ -23,5 +23,8 @@ for line in fin.readlines():
   for dest in dests:
     dest_idx = get_idx(dest[1])
     fout.write("{}\n{}\n{}\n".format(src_idx, dest_idx, dest[0]))
+    
+  if len(dests) == 0:
+    fout.write("{}\n-1\n1\n".format(src_idx))
   
 fout.write("0\n")

@@ -1,0 +1,255 @@
+; Advent of Code Day 7.2
+;
+; Input describes a directed acyclic graph
+; Each edge in the graph is described by a triple (src, dest, weight)
+; Nodes with no children have an additional entry (node, -1, 1)
+; Return the value of node 1 minus 1
+; The value of a node is 1 + the weight to each child node * the value of that node
+;
+; OUT2 is looped back to IN2
+
+; Strategy
+; Break array into three sets {input, open, closed}.
+; First push links from node 1 into the open set
+; Pick one node in the open set and move it to the closed set and nodes linking from it to the open set
+; Store in closed set as dest, weight, src
+; Repeat until open set is empty
+;
+; Discard input add new set for node - value pairs.  Values are two words long
+; Move all childless nodes to the value set, with value 1
+; Select first node in the value set, check if it is the src of any remaining links, if so push to end of value set and try again
+; Remove selected node from the value set and add all nodes linking to that node to value set, with appropriate value
+;  Save removed node to third set while removing, so can destroy value during new value computation
+; At the end we should be left with node 1!
+
+read:
+ A=IN1
+ W=A,F=ZERO(-A)
+ JMPT rdone
+ A=IN1
+ OUT2=W,W=A
+ A=IN1
+ OUT2=W,W=A
+ OUT2=W,JMP read
+ 
+rdone:
+ W=0
+ OUT2=W
+ OUT2=W
+ OUT2=W,B=1,W=1,JMP open
+ 
+open2:
+ B=A,W=A
+open:
+ OUT2=W,A=IN2
+open3:
+ D=A,W=A,F=ZERO(-A)
+ A=IN2,F=ZERO(B-A),JMPT endinput
+ JMPT movetoopen
+ OUT2=W,W=A,A=IN2
+ OUT2=W,W=A
+ OUT2=W,A=IN2,JMP open3
+ 
+movetoopen:
+ C=-A,A=IN2
+ B=A,A=IN2
+mtoloop:
+ W=A,F=ZERO(-A)
+ OUT2=W,A=IN2,JMPF mtoloop
+ A=D,D=A
+ W=A,A=C
+ OUT2=W,W=-A,A=D
+ OUT2=W,W=B
+ OUT2=W
+
+skipopen1:
+ W=A,F=ZERO(-A)
+ OUT2=W,A=IN2,JMPF skipopen1
+ 
+skipclosed1:
+ W=A,F=ZERO(-A)
+ OUT2=W,A=IN2,JMPF skipclosed1
+ JMP open2
+ 
+endinput:
+ OUT2=W,F=ZERO(-A)
+ JMPT done
+ C=-A,A=IN2
+ B=A,A=IN2
+ D=A,A=IN2
+skipopen2:
+ W=A,F=ZERO(-A)
+ OUT2=W,A=IN2,JMPF skipopen2
+
+addtoclosed:
+ W=B,A=D,D=A
+ OUT2=W,W=A,A=C
+ OUT2=W,W=-A
+ OUT2=W,A=D
+ 
+skipclosed2:
+ W=A,F=ZERO(-A)
+ OUT2=W,A=IN2,JMPF skipclosed2
+ W=B,JMP open
+
+done:
+ A=IN2
+doneloop:
+ W=A,F=ZERO(-A)
+ OUT2=W,A=IN2,JMPF doneloop
+skipinput:
+ W=0,F=ZERO(-A)
+ A=IN2,JMPF skipinput
+ OUT2=W
+ 
+scanterminal:
+ F=ZERO(-A),B=-1
+ W=A,F=ZERO(B-A),JMPT selectnode
+ JMPT tfound
+ A=IN2,OUT2=W,JMP scanterminal
+tfound:
+ A=IN2
+ A=IN2
+ B=A,A=IN2
+
+skipclosed3:
+ W=A,F=ZERO(-A)
+ OUT2=W,A=IN2,JMPF skipclosed3
+ W=B
+ OUT2=W,W=1
+ OUT2=W,W=0
+skipnodes1:
+ OUT2=W,W=A,F=ZERO(-A)
+ OUT2=W,A=IN2,JMPT scanterminal
+ W=A,A=IN2
+ OUT2=W,W=A,A=IN2,JMP skipnodes1 
+
+ ; At start of nodes list, select the first node by moving it to the start of the closed list
+selectnode:
+ OUT2=W,A=IN2
+selectnode2:
+ B=A,A=IN2
+ D=A,A=IN2
+ C=-A,A=IN2
+ W=A,F=ZERO(-A)
+skipnodes2:
+ OUT2=W,A=IN2,JMPT skipnodes2x
+ W=A,A=IN2
+ OUT2=W,W=A,A=IN2
+ OUT2=W,W=A,F=ZERO(-A),JMP skipnodes2
+ 
+skipnodes2x:
+ W=B,A=D,D=A
+ OUT2=W,W=A,A=C
+ OUT2=W,W=-A
+ OUT2=W,A=D
+ 
+checknotsrc:
+ W=A,F=ZERO(-A)
+ OUT2=W,A=IN2,JMPT notsrc
+ W=A,A=IN2
+ OUT2=W,W=A,F=ZERO(B-A)
+ OUT2=W,A=IN2,JMPF checknotsrc
+ 
+skipclosed4:
+ W=A,F=ZERO(-A)
+ OUT2=W,A=IN2,JMPF skipclosed4
+ W=A,F=ZERO(-A)
+skipnodes3:
+ A=IN2,JMPT readdnode
+ OUT2=W,W=A,A=IN2
+ OUT2=W,W=A,A=IN2
+ OUT2=W,W=A,F=ZERO(-A),JMP skipnodes3
+readdnode:
+ W=A,A=IN2
+ OUT2=W,W=A,A=IN2
+ OUT2=W,W=A
+ OUT2=W,W=0
+ OUT2=W,A=IN2
+skipclosed5:
+ W=A,F=ZERO(-A)
+ OUT2=W,A=IN2,JMPF skipclosed5
+ JMP selectnode2
+ 
+ ; Now at start of nodes list, with selected node on front of open list
+notsrc:
+ W=A,F=ZERO(-A),B=1
+skipnodes4:
+ OUT2=W,A=IN2,JMPT notsrcx
+ W=A,A=IN2
+ OUT2=W,W=A,A=IN2
+ OUT2=W,W=A,F=ZERO(-A),JMP skipnodes4
+notsrcx:
+ F=ZERO(B-A)
+ B=A,W=A,A=IN2,JMPT output
+ OUT2=W,W=A,D=A,A=IN2
+ OUT2=W,W=A,C=-A,A=IN2
+checkdest:
+ OUT2=W,W=A,F=ZERO(-A)
+ F=ZERO(B-A),JMPT nodest
+ JMPT dest
+ OUT2=W,A=IN2
+ W=A,A=IN2
+ OUT2=W,W=A,A=IN2,JMP checkdest
+ 
+dest:
+ A=IN2,B=-1
+ A=A+B,F=ZERO(A+B)
+ JMPT removelink
+ OUT2=W,W=A,A=IN2
+ OUT2=W,W=A,B=A,A=IN2
+ OUT2=W
+skipclosed6:
+ W=A,F=ZERO(-A)
+ OUT2=W,A=IN2,JMPF skipclosed6
+ 
+findnode:
+ W=A,F=ZERO(-A)
+ F=ZERO(B-A),JMPT newnode
+ OUT2=W,A=IN2,JMPT foundnode
+ W=A,A=IN2
+ OUT2=W,W=A,A=IN2
+ OUT2=W,JMP findnode
+
+removelink:
+ A=IN2
+ A=IN2,B=A,JMP skipclosed6
+
+foundnode:
+ B=A,A=D
+ A=A+B,B=A+B,W=A+B
+ F=NEG(B),B=$7FF   ; Note this is not the same as NEG(A+B) on the line before(!)
+ JMPF nocarry
+ W=A&B,DEC
+nocarry:
+ OUT2=W,A=IN2,B=C
+ A=B,B=A
+ W=B-A
+ OUT2=W,A=IN2,JMP notsrc
+
+newnode: 
+ W=B,A=D,B=1
+ OUT2=W,W=A+B
+ A=C
+ OUT2=W,W=-A,B=0
+ OUT2=W,A=B,JMP notsrc
+ 
+ ; At the beginning of the node list, need to remove the old selected node
+nodest:
+ OUT2=W,A=IN2
+ W=A,F=ZERO(-A)
+skipnodes5:
+ OUT2=W,A=IN2,JMPT nodestx
+ W=A,A=IN2
+ OUT2=W,W=A,A=IN2
+ OUT2=W,W=A,F=ZERO(-A),JMP skipnodes5
+nodestx:
+ A=IN2
+ A=IN2
+ A=IN2,JMP skipclosed5
+ 
+output:
+ B=-1
+ W=A+B,A=IN2
+ OUT1=W,W=A
+ OUT1=W
