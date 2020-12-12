@@ -1,0 +1,57 @@
+; Advent of Code Day 8.1
+;
+; Input represents a series of instructions (instr, value)
+; 1: Add the value to an accumulator
+; 2: Jump relative to the current instruction
+; 3: Noop
+; Stop when the program hits the same instruction again and print the value of the accumulator
+
+readloop:
+ A=IN1
+ W=A,F=ZERO(-A),A=IN1
+ JMPT readdone
+ OUT2=W,W=A
+ OUT2=W,DEC,JMP readloop
+ 
+readdone:
+ A=C,B=C
+ B=A+B
+ C=B
+
+mainloop:
+ A=IN2,B=-1,W=0
+ F=ZERO(A+B),A=A+B,OUT2=W
+ F=ZERO(A+B),A=A+B,OUT2=W,JMPT acc
+ F=ZERO(A+B),A=A+B,JMPT jump
+ F=ZERO(A+B),JMPT noop
+ 
+ ; Finish
+ A=D
+ W=A
+ OUT1=W
+ 
+acc:
+ A=IN2
+ B=A,A=D
+ A=A+B
+ D=A
+ JMP mainloop
+ 
+jump:
+ A=IN2,B=1
+ B=B-A,A=B-A,F=POS(B-A)
+ A=A+B
+ B=C,JMPF posjmp
+ A=A+B
+posjmp:
+ C=-A,F=ZERO(-A)
+ JMPT nojmp
+jmploop:
+ A=IN2
+ W=A
+ OUT2=W,DECNZ jmploop
+nojmp:
+ C=B,JMP mainloop
+ 
+noop:
+ A=IN2,JMP mainloop
