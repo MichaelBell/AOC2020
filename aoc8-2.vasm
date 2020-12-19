@@ -1,0 +1,155 @@
+; Advent of Code Day 8.2
+;
+; Input represents a series of instructions (instr, value)
+; 1: Add the value to an accumulator
+; 2: Jump relative to the current instruction
+; 3: Noop
+; One of the jump or noop instructions should be a noop or jump (respectively)
+; If this is corrected, the program will run to the end rather than looping
+; Print the value of the accumulator at the end when the incorrect instruction is corrected
+
+ B=1
+readloop:
+ A=IN1
+ W=A,F=ZERO(B-A)
+ JMPF readchange
+ A=IN1
+ OUT2=W,W=A
+ OUT2=W,DEC,JMP readloop
+
+readchange:
+ B=2
+ W=2,F=ZERO(B-A)
+ A=IN1,JMPF readthree
+ W=3
+readthree:
+ OUT2=W,W=A
+ OUT2=W,DEC
+ 
+readloop2:
+ A=IN1
+ W=A,F=ZERO(-A)
+ JMPT readdone
+ A=IN1
+ OUT2=W,W=A
+ OUT2=W,DEC,JMP readloop2
+ 
+readdone:
+ W=4
+ OUT2=W,W=0
+ OUT2=W,DEC
+ A=C,B=C
+ C=A+B,JMP mainloop
+ 
+changeprog:
+ A=IN2
+ B=4,A=C,W=A
+ OUT2=W
+findend:
+ A=IN2
+ F=ZERO(B-A),W=A,A=IN2
+ OUT2=W,W=A,JMPT atend
+ OUT2=W,JMP findend
+ 
+atend:
+ B=1
+ C=A+B,W=A+B,F=ZERO(A+B),JMP noskip
+skiploop: ; Fix negative instruction numbers from previous run
+ F=POS(-A)
+ JMPF notneg
+ A=-A
+notneg:
+ W=A,A=IN2,F=ZERO(B-A)
+ OUT2=W,W=A
+noskip:
+ OUT2=W,A=IN2,JMPT skiploop
+ DECNZ skiploop
+
+ B=2
+ C=B,B=1 
+changeloop:
+ F=POS(-A)
+ JMPF notneg3
+ A=-A
+notneg3:
+ W=A,F=ZERO(B-A)
+ JMPF change
+ OUT2=W,A=IN2
+ W=A
+ OUT2=W,A=IN2,JMP changeloop
+ 
+change:
+ B=2
+ F=ZERO(B-A)
+ W=2,JMPF three
+ W=3
+three:
+ OUT2=W,A=IN2
+ W=A
+ OUT2=W,A=IN2,B=1,DECNZ changeloop
+ 
+ B=4
+findstart:
+ F=POS(-A)
+ JMPF notneg2
+ A=-A
+notneg2:
+ F=ZERO(B-A),W=A,A=IN2
+ OUT2=W,W=A,JMPT atstart
+ OUT2=W,A=IN2,JMP findstart
+
+atstart:
+ OUT2=W,B=0
+ A=B,C=B,B=4
+ D=A,A=IN2
+ 
+countlen:
+ W=A,A=IN2,F=ZERO(B-A)
+ DEC,OUT2=W,W=A,JMPT atstart2
+ OUT2=W,A=IN2,JMP countlen
+ 
+atstart2:
+ OUT2=W,A=C,B=C
+ C=A+B
+
+mainloop:
+ A=IN2,B=-1
+ W=-A
+ F=ZERO(A+B),A=A+B,OUT2=W
+ F=ZERO(A+B),A=A+B,JMPT acc
+ F=ZERO(A+B),A=A+B,JMPT jump
+ F=ZERO(A+B),JMPT noop
+ JMPF changeprog
+ 
+ ; Finish
+ A=D
+ W=A
+ OUT1=W
+ 
+acc:
+ A=IN2
+ B=A,A=D,W=A
+ A=A+B,OUT2=W
+ D=A
+ JMP mainloop
+ 
+jump:
+ A=IN2,B=1
+ B=B-A,A=B-A,F=POS(B-A),W=A
+ A=A+B,OUT2=W
+ B=C,JMPF posjmp
+ A=A+B
+posjmp:
+ C=-A,F=ZERO(-A)
+ JMPT nojmp
+jmploop:
+ A=IN2
+ W=A
+ OUT2=W,DECNZ jmploop
+nojmp:
+ C=B,JMP mainloop
+ 
+noop:
+ A=IN2
+ W=A
+ OUT2=W,JMP mainloop
